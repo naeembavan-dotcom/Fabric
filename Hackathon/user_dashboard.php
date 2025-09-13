@@ -1,6 +1,20 @@
+<h1>
+    <?php
+    session_start();
+    if(isset($_SESSION['user_name'])){
+        echo htmlspecialchars($_SESSION['user_name']) . "'s Dashboard";
+    } else {
+        echo "Dashboard";
+    }
+      
+    ?>
+</h1>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Army Fabric Selection & Supply Chain Optimization Dashboard</title>
@@ -557,7 +571,7 @@ body {
     <div class="header-content">
         <h1>AI/ML Fabric Selection & Supply Chain Optimization</h1>
         <div class="user-info">
-            <span>🪖 Officer Dashboard</span>
+            <span>🪖 Welcome officer</span>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -737,6 +751,7 @@ body {
             </div>
         </div>
     </div>
+    
 
     <!-- Multi-Climate Comparison Tab -->
     <div id="comparison" class="tab-content">
@@ -798,71 +813,149 @@ body {
         </div>
     </div>
 
-    <!-- Sustainability Assessment Tab -->
-    <div id="sustainability" class="tab-content">
-        <div class="dashboard-grid">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">🌱</div>
-                    <h3 class="card-title">Sustainability Score</h3>
-                </div>
-                <div class="score-display">
-                    <div class="score-circle" id="sustainabilityScore">N/A</div>
-                    <div class="score-label">Eco-Friendliness Rating</div>
-                </div>
+   <!-- Sustainability Assessment Tab -->
+<div id="sustainability" class="tab-content">
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🌱</div>
+                <h3 class="card-title">Sustainability Score</h3>
             </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">♻️</div>
-                    <h3 class="card-title">Recyclability Assessment</h3>
-                </div>
-                <div class="score-display">
-                    <div class="score-circle" id="recyclabilityScore">N/A</div>
-                    <div class="score-label">Recyclability Index</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">🌿</div>
-                    <h3 class="card-title">Biodegradability Index</h3>
-                </div>
-                <div class="score-display">
-                    <div class="score-circle" id="biodegradabilityScore">N/A</div>
-                    <div class="score-label">Biodegradation Rate</div>
-                </div>
+            <div class="score-display">
+                <div class="score-circle" id="sustainabilityScore">N/A</div>
+                <div class="score-label">Eco-Friendliness Rating</div>
             </div>
         </div>
 
-        <div class="card card-wide">
+        <div class="card">
             <div class="card-header">
-                <div class="card-icon">📊</div>
-                <h3 class="card-title">Sustainability Metrics Breakdown</h3>
+                <div class="card-icon">♻️</div>
+                <h3 class="card-title">Recyclability Assessment</h3>
             </div>
-            <div class="chart-container">
-                <canvas id="sustainabilityChart"></canvas>
+            <div class="score-display">
+                <div class="score-circle" id="recyclabilityScore">N/A</div>
+                <div class="score-label">Recyclability Index</div>
             </div>
-            <div class="status-grid">
-                <div class="status-item">
-                    <div class="status-value" id="carbonFootprint">--</div>
-                    <div class="status-label">Carbon Footprint</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-value" id="waterUsage">--</div>
-                    <div class="status-label">Water Usage</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-value" id="chemicalImpact">--</div>
-                    <div class="status-label">Chemical Impact</div>
-                </div>
-                <div class="status-item">
-                    <div class="status-value" id="lifeCycleScore">--</div>
-                    <div class="status-label">Life Cycle Score</div>
-                </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🌿</div>
+                <h3 class="card-title">Biodegradability Index</h3>
+            </div>
+            <div class="score-display">
+                <div class="score-circle" id="biodegradabilityScore">N/A</div>
+                <div class="score-label">Biodegradation Rate</div>
             </div>
         </div>
     </div>
+
+    <div class="card card-wide">
+        <div class="card-header">
+            <div class="card-icon">📊</div>
+            <h3 class="card-title">Sustainability Metrics Breakdown</h3>
+        </div>
+        <div class="chart-container">
+            <canvas id="sustainabilityChart"></canvas>
+        </div>
+        <div class="status-grid">
+            <div class="status-item">
+                <div class="status-value" id="carbonFootprint">--</div>
+                <div class="status-label">Carbon Footprint</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="waterUsage">--</div>
+                <div class="status-label">Water Usage</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="chemicalImpact">--</div>
+                <div class="status-label">Chemical Impact</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="lifeCycleScore">--</div>
+                <div class="status-label">Life Cycle Score</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Example: Sustainability data (you can replace with AI/ML output or API)
+    let sustainabilityData = {
+        sustainabilityScore: 82,
+        recyclabilityScore: 75,
+        biodegradabilityScore: 68,
+        carbonFootprint: "120 kg CO₂",
+        waterUsage: "350 L",
+        chemicalImpact: "Low",
+        lifeCycleScore: "B+"
+    };
+
+    function updateSustainabilityTab(data) {
+        // Update main scores
+        document.getElementById("sustainabilityScore").textContent = data.sustainabilityScore + "%";
+        document.getElementById("recyclabilityScore").textContent = data.recyclabilityScore + "%";
+        document.getElementById("biodegradabilityScore").textContent = data.biodegradabilityScore + "%";
+
+        // Update detailed breakdown
+        document.getElementById("carbonFootprint").textContent = data.carbonFootprint;
+        document.getElementById("waterUsage").textContent = data.waterUsage;
+        document.getElementById("chemicalImpact").textContent = data.chemicalImpact;
+        document.getElementById("lifeCycleScore").textContent = data.lifeCycleScore;
+
+        // Update chart
+        if (window.sustainabilityChart) {
+            window.sustainabilityChart.destroy();
+        }
+
+        const ctx = document.getElementById('sustainabilityChart').getContext('2d');
+        window.sustainabilityChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Sustainability', 'Recyclability', 'Biodegradability'],
+                datasets: [{
+                    label: 'Scores',
+                    data: [
+                        data.sustainabilityScore,
+                        data.recyclabilityScore,
+                        data.biodegradabilityScore
+                    ],
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+    }
+
+    // Initial load
+    updateSustainabilityTab(sustainabilityData);
+
+    // Example: If values change dynamically (simulate after 5 sec)
+    setTimeout(() => {
+        let newData = {
+            sustainabilityScore: 90,
+            recyclabilityScore: 80,
+            biodegradabilityScore: 70,
+            carbonFootprint: "100 kg CO₂",
+            waterUsage: "300 L",
+            chemicalImpact: "Very Low",
+            lifeCycleScore: "A"
+        };
+        updateSustainabilityTab(newData);
+    }, 5000);
+</script>
+
 
        <!-- Supply Chain Optimization Tab -->
     <div id="supply-chain" class="tab-content">
@@ -922,12 +1015,114 @@ function logout() {
 
 // Dummy AI/ML Analysis Function
 function runComprehensiveAnalysis() {
-    document.getElementById('analyzeText').innerText = '⏳ Running Analysis...';
+    document.getElementById('analyzeText').innerText = '🚀 Run AI/ML Analysis';
+showAlert("Analysis Completed Successfully!", "success");
+
+
+    // Parse inputs first
+    const temperature = parseFloat(document.getElementById('temperature').value);
+    const humidity = parseFloat(document.getElementById('humidity').value);
+    const altitude = parseFloat(document.getElementById('altitude').value);
+    const terrain = document.getElementById('terrain').value;
+
+    const weight = parseFloat(document.getElementById('fabricWeight').value);
+    const breathability = parseFloat(document.getElementById('breathability').value);
+    const insulation = parseFloat(document.getElementById('insulation').value);
+    const tensile = parseFloat(document.getElementById('tensileStrength').value);
+    const moisture = parseFloat(document.getElementById('moistureAbsorption').value);
+    const durability = parseFloat(document.getElementById('durability').value);
+    const recyclability = parseFloat(document.getElementById('recyclability').value);
+
+    // Calculate scores
+    const thermalComfort = Math.min(10, Math.max(1, (10 - Math.abs(temperature-25)/3)));
+    const moistureManagement = Math.min(10, Math.max(1, (breathability + (10-moisture))/2));
+    const durabilityScore = Math.min(10, Math.max(1, (durability + tensile/10)/2));
+    const overallSuitability = ((thermalComfort + moistureManagement + durabilityScore)/3).toFixed(1);
+
+    // Multi-climate scores
+    const climates = [
+        { name: 'Cold Desert (Ladakh)', key: 'coldDesertScore', thermal: thermalComfort-0.5, breathability: breathability-1, moisture: moistureManagement-0.5, durability: durabilityScore-0.5 },
+        { name: 'Hot Desert (Rajasthan)', key: 'hotDesertScore', thermal: thermalComfort-1, breathability: breathability-2, moisture: moistureManagement-1, durability: durabilityScore-1 },
+        { name: 'Humid Coastal', key: 'coastalScore', thermal: thermalComfort-1.2, breathability: breathability-1.5, moisture: moistureManagement-0.8, durability: durabilityScore-1 },
+        { name: 'Dense Jungle', key: 'jungleScore', thermal: thermalComfort-1, breathability: breathability-1, moisture: moistureManagement-1, durability: durabilityScore-0.5 },
+    ];
+
+
     setTimeout(() => {
-        document.getElementById('thermalComfort').innerText = '8/10';
-        document.getElementById('moistureManagement').innerText = '7/10';
-        document.getElementById('durabilityScore').innerText = '9/10';
-        document.getElementById('overallSuitability').innerText = '8.5/10';
+        // === Fabric Performance Scores ===
+        const temperature = parseFloat(document.getElementById('temperature').value);
+        const humidity = parseFloat(document.getElementById('humidity').value);
+        const altitude = parseFloat(document.getElementById('altitude').value);
+        const terrain = document.getElementById('terrain').value;
+
+        const weight = parseFloat(document.getElementById('fabricWeight').value);
+        const breathability = parseFloat(document.getElementById('breathability').value);
+        const insulation = parseFloat(document.getElementById('insulation').value);
+        const tensile = parseFloat(document.getElementById('tensileStrength').value);
+        const moisture = parseFloat(document.getElementById('moistureAbsorption').value);
+        const durability = parseFloat(document.getElementById('durability').value);
+        const recyclability = parseFloat(document.getElementById('recyclability').value);
+
+        // === Simple scoring logic (example) ===
+        const thermalComfort = Math.min(10, Math.max(1, (10 - Math.abs(temperature-25)/3)));
+        const moistureManagement = Math.min(10, Math.max(1, (breathability + (10-moisture))/2));
+        const durabilityScore = Math.min(10, Math.max(1, (durability + tensile/10)/2));
+        const overallSuitability = ((thermalComfort + moistureManagement + durabilityScore)/3).toFixed(1);
+
+        // Update the performance tab
+        document.getElementById('thermalComfort').innerText = thermalComfort + '/10';
+        document.getElementById('moistureManagement').innerText = moistureManagement + '/10';
+        document.getElementById('durabilityScore').innerText = durabilityScore + '/10';
+        document.getElementById('overallSuitability').innerText = overallSuitability + '/10';
+
+        // Update the performance chart
+        performanceChart.data.datasets[0].data = [thermalComfort, moistureManagement, durabilityScore, overallSuitability];
+        performanceChart.update();
+
+        // === Update Detailed Performance Matrix ===
+const matrixBody = document.getElementById('matrixBody');
+matrixBody.innerHTML = ""; // clear old rows
+
+climates.forEach(climate => {
+    const overall = (
+        (climate.thermal + climate.breathability + climate.moisture + climate.durability) / 4
+    ).toFixed(1);
+
+    const recommendation = overall >= 7
+        ? "✅ Highly Suitable"
+        : overall >= 5
+            ? "⚠️ Moderate Suitability"
+            : "❌ Not Recommended";
+
+    const row = `
+        <tr>
+            <td>${climate.name}</td>
+            <td>${climate.thermal.toFixed(1)}/10</td>
+            <td>${climate.breathability.toFixed(1)}/10</td>
+            <td>${climate.moisture.toFixed(1)}/10</td>
+            <td>${climate.durability.toFixed(1)}/10</td>
+            <td>${overall}/10</td>
+            <td>${recommendation}</td>
+        </tr>
+    `;
+    matrixBody.innerHTML += row;
+});
+
+
+        // === Multi-climate comparison example ===
+        const climateScores = {
+            'coldDesertScore': (overallSuitability - 1).toFixed(1),
+            'hotDesertScore': (overallSuitability - 0.5).toFixed(1),
+            'coastalScore': (overallSuitability - 1.2).toFixed(1),
+            'jungleScore': (overallSuitability - 0.8).toFixed(1)
+        };
+
+        for (const id in climateScores) {
+            document.getElementById(id).innerText = climateScores[id];
+        }
+
+        comparisonChart.data.datasets[0].data = Object.values(climateScores);
+        comparisonChart.update();
 
         // Recommendations
         const rec = document.getElementById('recommendationsContainer');
@@ -941,10 +1136,60 @@ function runComprehensiveAnalysis() {
                 <div class="recommendation-desc">Consider fabrics with higher recyclability for extended deployment missions.</div>
             </div>
         `;
+
         document.getElementById('analyzeText').innerText = '🚀 Run AI/ML Analysis';
         showAlert("Analysis Completed Successfully!", "success");
     }, 2000);
+    // ------------------ Supply Chain Optimization ------------------
+const fabricValues = {
+    overallSuitability: parseFloat(overallSuitability),
+    durabilityScore: durabilityScore,
+    recyclability: recyclability
+};
+
+// Update supply chain chart (example logic)
+const efficiencyData = [
+    Math.min(100, fabricValues.overallSuitability * 10 + Math.random()*5),
+    Math.min(100, fabricValues.overallSuitability * 12 + Math.random()*5),
+    Math.min(100, fabricValues.durabilityScore * 10 + Math.random()*5),
+    Math.min(100, (fabricValues.overallSuitability + fabricValues.durabilityScore) * 5 + Math.random()*5)
+];
+supplyChainChart.data.datasets[0].data = efficiencyData;
+supplyChainChart.update();
+
+// Update inventory & material recommendations
+const recContainer = document.getElementById('supplyRecommendations');
+let recommendations = [];
+
+if(fabricValues.overallSuitability > 7 && fabricValues.durabilityScore > 7){
+    recommendations.push({
+        title: "✅ High Performance Fabric",
+        desc: "Use for frontline deployments with minimal inventory risk."
+    });
+} else {
+    recommendations.push({
+        title: "⚠️ Moderate Performance Fabric",
+        desc: "Maintain extra inventory and monitor for wear and tear."
+    });
 }
+
+if(fabricValues.recyclability > 7){
+    recommendations.push({
+        title: "♻️ Eco-Friendly Option",
+        desc: "Can be recycled or repurposed to reduce waste."
+    });
+}
+
+recContainer.innerHTML = recommendations.map(r => `
+    <div class="recommendation-item">
+        <div class="recommendation-title">${r.title}</div>
+        <div class="recommendation-desc">${r.desc}</div>
+    </div>
+`).join('');
+
+}
+
+
 
 // Alerts
 function showAlert(msg, type) {
@@ -959,12 +1204,81 @@ function showAlert(msg, type) {
 
 // Dummy Export Functions
 function exportPDF() {
-    alert("Exporting PDF... (to be implemented with jsPDF)");
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("AI/ML Fabric Analysis Report", 20, 20);
+
+    // --- Performance Matrix ---
+    doc.setFontSize(12);
+    doc.text("Performance Matrix:", 20, 35);
+    const matrixTable = document.getElementById('matrixBody');
+    let y = 45;
+
+    for (let row of matrixTable.rows) {
+        const rowData = Array.from(row.cells).map(cell => cell.innerText).join(" | ");
+        doc.text(rowData, 20, y);
+        y += 8;
+    }
+
+    // --- Sustainability ---
+    doc.text("Sustainability Scores:", 20, y + 5);
+    const sustainability = ['sustainabilityScore','recyclabilityScore','biodegradabilityScore'];
+    y += 15;
+    sustainability.forEach(id => {
+        doc.text(`${id}: ${document.getElementById(id).innerText}`, 20, y);
+        y += 8;
+    });
+
+    // --- Supply Chain Recommendations ---
+    doc.text("Supply Chain Recommendations:", 20, y + 5);
+    y += 15;
+    const recs = document.querySelectorAll('#supplyRecommendations .recommendation-item');
+    recs.forEach(r => {
+        const title = r.querySelector('.recommendation-title').innerText;
+        const desc = r.querySelector('.recommendation-desc').innerText;
+        doc.text(`${title} - ${desc}`, 20, y);
+        y += 8;
+    });
+
+    doc.save("Fabric_Analysis_Report.pdf");
 }
 
 function exportCSV() {
-    alert("Exporting CSV... (to be implemented)");
+    // Collect Performance Matrix data
+    const matrix = document.getElementById('matrixBody');
+    let csvContent = "Climate/Terrain,Thermal,Breathability,Moisture,Durability,Overall,Recommendation\n";
+
+    for (let row of matrix.rows) {
+        const rowData = Array.from(row.cells).map(cell => `"${cell.innerText}"`).join(",");
+        csvContent += rowData + "\n";
+    }
+
+    // Sustainability Scores
+    const sustainability = ['sustainabilityScore','recyclabilityScore','biodegradabilityScore'];
+    csvContent += "\nSustainability Scores\n";
+    sustainability.forEach(id => {
+        csvContent += `${id},${document.getElementById(id).innerText}\n`;
+    });
+
+    // Supply Chain Recommendations
+    csvContent += "\nSupply Chain Recommendations\n";
+    const recs = document.querySelectorAll('#supplyRecommendations .recommendation-item');
+    recs.forEach(r => {
+        const title = r.querySelector('.recommendation-title').innerText;
+        const desc = r.querySelector('.recommendation-desc').innerText;
+        csvContent += `${title},${desc}\n`;
+    });
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Fabric_Analysis_Report.csv";
+    link.click();
 }
+
 
 // Chart.js placeholders
 const performanceChart = new Chart(document.getElementById('performanceChart').getContext('2d'), {
@@ -1020,5 +1334,7 @@ const supplyChainChart = new Chart(document.getElementById('supplyChainChart').g
     options:{ responsive:true, scales:{ y:{ beginAtZero:true, max:100 } } }
 });
 </script>
+
+
 </body>
 </html>
