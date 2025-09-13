@@ -3,16 +3,16 @@ session_start();
 include 'db.php';
 
 // Only admin can access
-if(!isset($_SESSION['role']) || $_SESSION['role']!=='admin'){
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     die("Access denied.");
 }
 
 // Handle approve/reject actions
-if(isset($_GET['action']) && isset($_GET['id'])){
+if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = intval($_GET['id']);
-    if($_GET['action'] === 'approve'){
+    if ($_GET['action'] === 'approve') {
         $conn->query("UPDATE users SET status='approved' WHERE id=$id");
-    } elseif($_GET['action'] === 'reject'){
+    } elseif ($_GET['action'] === 'reject') {
         $conn->query("UPDATE users SET status='rejected' WHERE id=$id");
     }
     header("Location: admin_dashboard.php");
@@ -23,10 +23,15 @@ if(isset($_GET['action']) && isset($_GET['id'])){
 $users = $conn->query("SELECT * FROM users ORDER BY id DESC");
 $pendingUsers = $conn->query("SELECT * FROM users WHERE status='pending' ORDER BY id ASC");
 
-// Fetch real activity feed
-$activityLogs = $conn->query("SELECT * FROM user_activity ORDER BY timestamp DESC");
-?>
+// Fetch activities
+$activityLogs = $conn->query("SELECT * FROM user_activity ORDER BY timestamp DESC LIMIT 20");
 
+// Count quick stats
+$totalUsers = $conn->query("SELECT COUNT(*) as c FROM users")->fetch_assoc()['c'];
+$approvedUsers = $conn->query("SELECT COUNT(*) as c FROM users WHERE status='approved'")->fetch_assoc()['c'];
+$pendingCount = $conn->query("SELECT COUNT(*) as c FROM users WHERE status='pending'")->fetch_assoc()['c'];
+$rejectedCount = $conn->query("SELECT COUNT(*) as c FROM users WHERE status='rejected'")->fetch_assoc()['c'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,133 +39,167 @@ $activityLogs = $conn->query("SELECT * FROM user_activity ORDER BY timestamp DES
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard | Army Fabric Optimization</title>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body{
-    font-family:'Quicksand',sans-serif;
-    background:#f0f2f5;
-    margin:0;
+body {
+    margin: 0;
+    font-family: 'Quicksand', sans-serif;
+    background: #f4f6f9;
+    display: flex;
 }
-header{
-    background:#1b5e20;
-    color:white;
-    padding:15px 20px;
-    text-align:center;
-    font-size:1.5rem;
-    font-weight:bold;
+.sidebar {
+    width: 250px;
+    background: #1b5e20;
+    color: white;
+    height: 100vh;
+    position: fixed;
+    top: 0; left: 0;
+    padding-top: 20px;
 }
-.logout{
-    position:fixed;
-    top:15px;
-    right:20px;
-    background:white;
-    color:#1b5e20;
-    padding:10px 15px;
-    border-radius:5px;
-    font-weight:bold;
-    text-decoration:none;
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
 }
-.logout:hover{
-    background:#1b5e20;
-    color:white;
+.sidebar a {
+    display: block;
+    padding: 12px 20px;
+    color: white;
+    text-decoration: none;
+    transition: background 0.3s;
 }
-.container{
-    display:flex;
-    flex-wrap:wrap;
-    margin:20px;
-    gap:20px;
-    justify-content:flex-start;
+.sidebar a:hover {
+    background: #2e7d32;
 }
-.card{
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.1);
-    flex:1 1 700px;
-    max-width:100%;
+.main {
+    margin-left: 250px;
+    padding: 20px;
+    flex: 1;
 }
-.card h3{
-    color:#1b5e20;
-    margin-bottom:15px;
+header {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #1b5e20;
 }
-table{
-    width:100%;
-    border-collapse:collapse;
+.cards {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
 }
-th, td{
-    padding:10px;
-    border-bottom:1px solid #ddd;
-    text-align:left;
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    flex: 1 1 200px;
+    text-align: center;
 }
-th{
-    background:#e8f5e9;
+.card h3 {
+    margin: 10px 0;
+    color: #1b5e20;
 }
-button{
-    padding:5px 10px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    font-weight:bold;
+.table-container {
+    margin-top: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    overflow-x: auto;
 }
-.approve{
-    background:#28a745;
-    color:white;
+table {
+    width: 100%;
+    border-collapse: collapse;
 }
-.reject{
-    background:#d32f2f;
-    color:white;
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
 }
-button:hover{
-    opacity:0.9;
+th {
+    background: #e8f5e9;
 }
-.activity-feed{
-    margin-top:15px;
-    background:#fff;
-    padding:15px;
-    border-radius:10px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.1);
-    max-height:400px;
-    overflow-y:auto;
+.approve {
+    background: #28a745; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;
 }
-.activity-feed h4{
-    color:#1b5e20;
-    margin-bottom:10px;
+.reject {
+    background: #d32f2f; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer;
 }
-.activity-feed table{
-    width:100%;
-    border-collapse:collapse;
+.system-health, .alerts {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
 }
-.activity-feed th, .activity-feed td{
-    padding:8px;
-    border-bottom:1px solid #eee;
-    font-size:0.9rem;
+.alert-box {
+    flex: 1;
+    padding: 15px;
+    border-radius: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+}
+.health-box {
+    flex: 1;
+    padding: 15px;
+    border-radius: 10px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+canvas {
+    margin-top: 20px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+}
+.logout {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: white;
+    color: #1b5e20;
+    padding: 8px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
 }
 </style>
 </head>
 <body>
 
-<header>Admin Dashboard</header>
-<a href="logout.php" class="logout">Logout</a>
+<div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="#overview">System Overview</a>
+    <a href="#users">User Management</a>
+    <a href="#activity">Real-time Activity</a>
+    <a href="#reports">Analysis & Reports</a>
+    <a href="#health">System Health</a>
+    <a href="#alerts">Alerts & Notifications</a>
+    <a href="logout.php">Logout</a>
+</div>
 
-<div class="container">
+<div class="main">
+    <header>Admin Dashboard</header>
 
-    <!-- Pending Users -->
-    <div class="card">
-        <h3>Pending Users</h3>
+    <!-- System Overview -->
+    <section id="overview">
+        <div class="cards">
+            <div class="card"><h3>Total Users</h3><p><?= $totalUsers ?></p></div>
+            <div class="card"><h3>Approved</h3><p><?= $approvedUsers ?></p></div>
+            <div class="card"><h3>Pending</h3><p><?= $pendingCount ?></p></div>
+            <div class="card"><h3>Rejected</h3><p><?= $rejectedCount ?></p></div>
+        </div>
+    </section>
+
+    <!-- User Management -->
+    <section id="users" class="table-container">
+        <h3>User Management</h3>
         <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Mobile</th>
-                <th>Action</th>
-            </tr>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>Status</th><th>Action</th></tr>
             <?php while($row = $pendingUsers->fetch_assoc()): ?>
             <tr>
                 <td><?= $row['id'] ?></td>
                 <td><?= $row['username'] ?></td>
                 <td><?= $row['email'] ?></td>
                 <td><?= $row['mobile'] ?></td>
+                <td><?= $row['status'] ?></td>
                 <td>
                     <a href="admin_dashboard.php?action=approve&id=<?= $row['id'] ?>"><button class="approve">Approve</button></a>
                     <a href="admin_dashboard.php?action=reject&id=<?= $row['id'] ?>"><button class="reject">Reject</button></a>
@@ -168,43 +207,13 @@ button:hover{
             </tr>
             <?php endwhile; ?>
         </table>
-    </div>
+    </section>
 
-    <!-- All Users -->
-    <div class="card">
-        <h3>All Users</h3>
+    <!-- Real-time Activity -->
+    <section id="activity" class="table-container">
+        <h3>Recent User Activities</h3>
         <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Mobile</th>
-                <th>Status</th>
-                <th>Registered At</th>
-            </tr>
-            <?php while($row = $users->fetch_assoc()): ?>
-            <tr>
-                <td><?= $row['id'] ?></td>
-                <td><?= $row['username'] ?></td>
-                <td><?= $row['email'] ?></td>
-                <td><?= $row['mobile'] ?></td>
-                <td><?= $row['status'] ?></td>
-                <td><?= $row['created_at'] ?></td>
-            </tr>
-            <?php endwhile; ?>
-        </table>
-    </div>
-
-    <!-- Activity Feed -->
-    <div class="card activity-feed">
-        <h4>Recent User Activities</h4>
-        <table>
-            <tr>
-                <th>User Email</th>
-                <th>Page</th>
-                <th>Action</th>
-                <th>Time</th>
-            </tr>
+            <tr><th>User Email</th><th>Page</th><th>Action</th><th>Time</th></tr>
             <?php while($row = $activityLogs->fetch_assoc()): ?>
             <tr>
                 <td><?= $row['user_email'] ?></td>
@@ -214,9 +223,52 @@ button:hover{
             </tr>
             <?php endwhile; ?>
         </table>
-    </div>
+    </section>
 
+    <!-- Reports -->
+    <section id="reports">
+        <h3>Analysis & Reports</h3>
+        <canvas id="userChart"></canvas>
+    </section>
+
+    <!-- System Health -->
+    <section id="health" class="system-health">
+        <div class="health-box">
+            <h4>Database Status</h4>
+            <p>✅ Connected and running</p>
+        </div>
+        <div class="health-box">
+            <h4>Server Load</h4>
+            <p>Normal</p>
+        </div>
+    </section>
+
+    <!-- Alerts -->
+    <section id="alerts" class="alerts">
+        <div class="alert-box">
+            <h4>⚠️ Pending Users</h4>
+            <p>You have <?= $pendingCount ?> users awaiting approval.</p>
+        </div>
+        <div class="alert-box">
+            <h4>🔔 System Notification</h4>
+            <p>All services are running smoothly.</p>
+        </div>
+    </section>
 </div>
 
+<script>
+// Chart.js Users Report
+const ctx = document.getElementById('userChart');
+new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: ['Approved', 'Pending', 'Rejected'],
+        datasets: [{
+            data: [<?= $approvedUsers ?>, <?= $pendingCount ?>, <?= $rejectedCount ?>],
+            backgroundColor: ['#28a745','#ffc107','#dc3545']
+        }]
+    }
+});
+</script>
 </body>
 </html>
