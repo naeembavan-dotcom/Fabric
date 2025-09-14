@@ -7,7 +7,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     die("Access denied.");
 }
 //$user_id = $_SESSION['user_id'] ?? null; 
-$stmt->execute([$_SESSION['user_id']]);
+//$stmt->execute([$_SESSION['user_id']]);
 
 // Handle approve/reject actions
 if (isset($_GET['action']) && isset($_GET['id'])) {
@@ -274,3 +274,4 @@ new Chart(ctx, {
 </script>
 </body>
 </html>
+
